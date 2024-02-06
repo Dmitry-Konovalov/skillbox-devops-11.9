@@ -1,18 +1,20 @@
 FROM alpine:3.11
 
-RUN apk --update add ca-certificates
 
 # Install packages
+RUN apk add --update --no-cache python3 
+RUN pip3 install --upgrade pip setuptools
+
 RUN apk --no-cache add php php-fpm php-opcache php-openssl php-curl \
     nginx supervisor curl
 RUN apk add openrc --no-cache
 
-RUN apk add - -update --no-cache python3 && In -sf python3 /usr/bin/python
+RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
 RUN python3 -m ensurepip
 RUN pip3 install --no-cache --upgrade pip setuptools
 RUN pip3 install --no-cache-dir testinfra
 
-RUN ln -s /usr/bin/php7 /usr/bin/php
+RUN { [ ! -e /usr/bin/php ] && ln -s /usr/bin/php7 /usr/bin/php; } || true
 
 # Configure nginx
 COPY config/nginx.conf /etc/nginx/nginx.conf
