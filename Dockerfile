@@ -1,17 +1,17 @@
 FROM alpine:3.11
 
-# ADD https://dl.bintray.com/php-alpine/key/php-alpine.rsa.pub /etc/apk/keys/php-alpine.rsa.pub old link
-ADD https://packages.whatwedo.ch/php-alpine.rsa.pub /etc/apk/keys/php-alpine.rsa.pub
-
-# make sure you can use HTTPS
 RUN apk --update add ca-certificates
-RUN echo "https://packages.whatwedo.ch/php-alpine/v3.11/php-7.4" >> /etc/apk/repositories
 
 # Install packages
 RUN apk --no-cache add php php-fpm php-opcache php-openssl php-curl \
     nginx supervisor curl
+RUN apk add openrc --no-cache
 
-# https://github.com/codecasts/php-alpine/issues/21
+RUN apk add - -update --no-cache python3 && In -sf python3 /usr/bin/python
+RUN python3 -m ensurepip
+RUN pip3 install --no-cache --upgrade pip setuptools
+RUN pip3 install --no-cache-dir testinfra
+
 RUN ln -s /usr/bin/php7 /usr/bin/php
 
 # Configure nginx
@@ -19,6 +19,10 @@ COPY config/nginx.conf /etc/nginx/nginx.conf
 
 # Remove default server definition
 RUN rm /etc/nginx/conf.d/default.conf
+
+RUN mkdir /etc/nginx/test
+RUN mkdir /etc/nginx/test_report
+COPY test.py /etc/nginx/test
 
 # Configure PHP-FPM
 COPY config/fpm-pool.conf /etc/php7/php-fpm.d/www.conf
